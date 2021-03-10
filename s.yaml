@@ -1,0 +1,70 @@
+Global:
+  Service:
+      Name: ServerlessBook
+      Description: Serverless图书案例
+      Log: Auto
+      Nas: Auto
+
+ServerlessBookCaptchaDemo:
+  Component: fc
+  Provider: alibaba
+  Access: release
+  Extends:
+    deploy:
+      - Hook: s install docker
+        Path: ./
+        Pre: true
+  Properties:
+    Region: cn-beijing
+    Service:
+      Name: ServerlessBook
+      Description: Serverless图书案例
+      Log: Auto
+      Nas: Auto
+    Function:
+      Name: serverless_captcha
+      Description: 验证码识别
+      CodeUri:
+        Src: ./src/backend
+        Excludes:
+          - src/backend/.fun
+          - src/backend/model
+      Handler: index.handler
+      Environment:
+        - Key: PYTHONUSERBASE
+          Value: /mnt/auto/.fun/python
+      MemorySize: 3072
+      Runtime: python3
+      Timeout: 60
+      Triggers:
+        - Name: ImageAI
+          Type: HTTP
+          Parameters:
+            AuthType: ANONYMOUS
+            Methods:
+              - GET
+              - POST
+              - PUT
+            Domains:
+              - Domain: Auto
+
+ServerlessBookCaptchaWebsiteDemo:
+  Component: bottle
+  Provider: alibaba
+  Access: release
+  Extends:
+    deploy:
+      - Hook: pip3 install -r requirements.txt -t ./
+        Path: ./src/website
+        Pre: true
+  Properties:
+    Region: cn-beijing
+    CodeUri: ./src/website
+    App: index.py
+    Environment:
+      - Key: url
+        Value: ${ServerlessBookCaptchaDemo.Output.Triggers[0].Domains[0]}
+    Detail:
+      Service: ${Global.Service}
+      Function:
+        Name: serverless_captcha_website

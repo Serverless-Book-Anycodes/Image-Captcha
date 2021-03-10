@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>验证码识别测试系统</title>
+    <link href="https://www.bootcss.com/p/layoutit/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script>
+
+        var image = undefined
+
+        function getCaptcha() {
+            const xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+            xmlhttp.open("GET", '/get_captcha', false);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    image = JSON.parse(xmlhttp.responseText).Response.image
+                    document.getElementById("captcha").src = "data:image/png;base64," + image
+                    document.getElementById("getResult").style.visibility = 'visible'
+                }
+            }
+            xmlhttp.setRequestHeader("Content-type", "application/json");
+            xmlhttp.send();
+        }
+
+        function getCaptchaResult() {
+            const xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+            xmlhttp.open("POST", '/get_captcha_result', false);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    document.getElementById("result").innerText = "识别结果：" + JSON.parse(xmlhttp.responseText).Response.result
+                }
+            }
+            xmlhttp.setRequestHeader("Content-type", "application/json");
+            xmlhttp.send(JSON.stringify({"image": image}));
+        }
+    </script>
+</head>
+<body>
+<div class="container-fluid" style="margin-top: 10px">
+
+    <div class="row-fluid">
+        <div class="span12">
+            <center>
+                <h3>
+                    验证码识别测试系统
+                </h3>
+            </center>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span2">
+        </div>
+        <div class="span8">
+            <center>
+                <img src="" id="captcha"/>
+                <br><br>
+                <p id="result"></p>
+            </center>
+            <fieldset>
+                <legend>操作：</legend>
+                <button class="btn" onclick="getCaptcha()">获取验证码</button>
+                <button class="btn" onclick="getCaptchaResult()" id="getResult" style="visibility: hidden">识别验证码
+                </button>
+            </fieldset>
+
+        </div>
+        <div class="span2">
+        </div>
+    </div>
+</div>
+</body>
+</html>
